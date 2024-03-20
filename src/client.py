@@ -4,29 +4,34 @@ from PyQt6 import QtGui, uic
 
 class Canvas:
     def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.data = [[0]*self.height for _ in range(self.width)]
+        self.width = int(width)
+        self.height = int(height)
+        self.data = [[None]*self.height for _ in range(self.width)]
 
-    def add_grain(self, x, y):
-        self.data[x][y] = 1
+    def add_grain(self, x, y, value=1):
+        self.data[x][y] = value
 
 # Only needed for access to command line arguments
 import sys
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.gfxWidth = 400
+        self.gfxHeight = 400
+        self.grainLength = 10
 
         self.label = QLabel()
-        canvas = QtGui.QPixmap(400, 400)
-        canvas.fill(Qt.GlobalColor.white)
-        self.label.setPixmap(canvas)
+        pixmap = QtGui.QPixmap(400, 400)
+        pixmap.fill(Qt.GlobalColor.white)
+        self.label.setPixmap(pixmap)
+
         self.setCentralWidget(self.label)
-        self.canvas = Canvas(400, 400)
-        self.canvas.add_grain(200, 150)
+        self.canvas = Canvas(self.gfxWidth/self.grainLength, self.gfxHeight/self.grainLength)
+        self.canvas.add_grain(20, 15, QtGui.QColorConstants.Black)
         # print(self.canvas.data)
-        self.canvas.add_grain(220, 150)
-        self.canvas.add_grain(200, 130)
+        self.canvas.add_grain(22, 15, QtGui.QColorConstants.Black)
+        self.canvas.add_grain(20, 13, QtGui.QColorConstants.Black)
+        self.canvas.add_grain(20, 14, QtGui.QColorConstants.Red)
         self.draw_canvas()
 
     def draw_canvas(self):
@@ -35,14 +40,14 @@ class MainWindow(QMainWindow):
         # painter.setBrush(QtGui.QColorConstants.Red)
         for x in range(0, self.canvas.width):
             for y in range(0, self.canvas.height):
-                if self.canvas.data[x][y] == 1:
+                if self.canvas.data[x][y] != None:
                     # print("Hit")
                     painter = QtGui.QPainter(canvas)
                     pen = QtGui.QPen()
-                    pen.setWidth(10)
-                    pen.setColor(QtGui.QColorConstants.Black)
+                    pen.setWidth(self.grainLength)
+                    pen.setColor(self.canvas.data[x][y])
                     painter.setPen(pen)
-                    painter.drawPoint(x, y)
+                    painter.drawPoint(x*self.grainLength, y*self.grainLength)
                     painter.end()
 
         self.label.setPixmap(canvas)
