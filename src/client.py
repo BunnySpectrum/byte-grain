@@ -6,10 +6,25 @@ class Canvas:
     def __init__(self, width, height):
         self.width = int(width)
         self.height = int(height)
-        self.data = [[None]*self.height for _ in range(self.width)]
+        self.data = [[QtGui.QColorConstants.White]*self.height for _ in range(self.width)]
 
-    def add_grain(self, x, y, value=1):
+    def add_grain(self, x, y, value=QtGui.QColorConstants.Black):
         self.data[x][y] = value
+
+    def update(self):
+        newData = [[QtGui.QColorConstants.White]*self.height for _ in range(self.width)]
+        for x in range(0, self.width):
+            for y in range(0, self.height):
+                if self.data[x][y] != QtGui.QColorConstants.White:
+                    print(f"({x}, {y}) = {self.data[x][y]}")
+                    if y+1 == self.height:
+                        newData[x][y] = self.data[x][y]
+                    elif self.data[x][y+1] == QtGui.QColorConstants.White:
+                        newData[x][y+1] = self.data[x][y]
+                    else:
+                        newData[x][y] = self.data[x][y]
+        self.data = newData
+
 
 # Only needed for access to command line arguments
 import sys
@@ -52,6 +67,11 @@ class MainWindow(QMainWindow):
 
         self.label.setPixmap(canvas)
 
+    def mousePressEvent(self, e):
+        # self.label.setText("mousePressEvent")
+        print("Update")
+        self.canvas.update()
+        self.draw_canvas()
 
 # You need one (and only one) QApplication instance per application.
 # Pass in sys.argv to allow command line arguments for your app.
