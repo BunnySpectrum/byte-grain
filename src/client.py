@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QMainWindow, QLabel
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import QSize, Qt, QTimer
 from PyQt6 import QtGui, uic
 
 class Canvas:
@@ -16,7 +16,7 @@ class Canvas:
         for x in range(0, self.width):
             for y in range(0, self.height):
                 if self.data[x][y] != QtGui.QColorConstants.White:
-                    print(f"({x}, {y}) = {self.data[x][y]}")
+                    # print(f"({x}, {y}) = {self.data[x][y]}")
                     if y+1 == self.height:
                         newData[x][y] = self.data[x][y]
                     elif self.data[x][y+1] == QtGui.QColorConstants.White:
@@ -48,6 +48,13 @@ class MainWindow(QMainWindow):
         self.canvas.add_grain(20, 13, QtGui.QColorConstants.Black)
         self.canvas.add_grain(20, 14, QtGui.QColorConstants.Red)
         self.draw_canvas()
+        self.start_timer()
+
+    def start_timer(self):
+        self.timer = QTimer()
+        self.timer.setInterval(int(1000/30))
+        self.timer.timeout.connect(self.update)
+        self.timer.start()
 
     def draw_canvas(self):
         canvas = self.label.pixmap()
@@ -67,11 +74,18 @@ class MainWindow(QMainWindow):
 
         self.label.setPixmap(canvas)
 
-    def mousePressEvent(self, e):
-        # self.label.setText("mousePressEvent")
-        print("Update")
+    def update(self):
         self.canvas.update()
         self.draw_canvas()
+
+    def mousePressEvent(self, e):
+        print(e.pos())
+        if(e.button() == Qt.MouseButton.RightButton):
+            val = QtGui.QColorConstants.Red
+        else:
+            val = QtGui.QColorConstants.Black 
+
+        self.canvas.add_grain(int(e.pos().x()/10), int(e.pos().y()/10), val)
 
 # You need one (and only one) QApplication instance per application.
 # Pass in sys.argv to allow command line arguments for your app.
