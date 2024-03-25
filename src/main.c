@@ -14,7 +14,8 @@
 
 typedef enum {
     BG_FAIL = 0,
-    BG_SUCCESS = 1
+    BG_SUCCESS,
+    BG_TIMEOUT,
 } BG_CODES_e;
 
 /*
@@ -46,6 +47,16 @@ BG_CODES_e create_shared_memory(const char* name, int* fdSharedMem){
     return BG_SUCCESS;
 }
 
+BG_CODES_e unlink_shared_memory(const char* name){
+
+    if(0 == shm_unlink(name)){
+        perror("Unable to unlink shared memory.");
+        return BG_FAIL;
+    }
+
+    return BG_SUCCESS;
+}
+
 /*
 //  Resize shared memory. Need to do this after creating else will be size zero
 //  TODO tests:
@@ -63,6 +74,84 @@ BG_CODES_e resize_shared_memory(int fdSharedMem, off_t size){
 
 }
 
+BG_CODES_e mmap_shared_memory(int fdMem, size_t size, void* ptrMem){
+
+    ptrMem = mmap((void*)0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fdMem, 0);
+
+    if(MAP_FAILED == ptrMem){
+        perror("Unable to mmap shared memory.");
+        ptrMem = NULL;
+        return BG_FAIL;
+    }
+
+    return BG_SUCCESS;
+}
+
+BG_CODES_e munmap_shared_memory(void* ptrMem, size_t size){
+
+    if(0 == munmap(ptrMem, size)){
+        perror("Unable to m-unmap shared memory.");
+        return BG_FAIL;
+    }
+
+    return BG_SUCCESS;
+}
+
+
+BG_CODES_e semaphore_open(const char* name, sem_t* ptrSem){
+
+    ptrSem = sem_open(name, O_CREAT, S_IRUSR | S_IWUSR, 0);
+
+    if(MAP_FAILED == ptrSem){
+        perror("Unable to open semamphore.");
+        ptrSem = NULL;
+        return BG_FAIL;
+    }
+
+    return BG_SUCCESS;
+}
+
+BG_CODES_e semaphore_close(sem_t* ptrSem){
+
+    if(0 == sem_close(ptrSem)){
+        perror("Unable to close semamphore.");
+        return BG_FAIL;
+    }
+
+    return BG_SUCCESS;
+}
+
+BG_CODES_e semaphore_unlink(const char* name){
+
+    if(0 == sem_unlink(name)){
+        perror("Unable to unlink semamphore.");
+        return BG_FAIL;
+    }
+
+    return BG_SUCCESS;
+}
+
+
+
+// up == V, release, signal, post, vacate
+BG_CODES_e semaphore_up(sem_t* ptrSem){
+
+    if(0 != sem_post(ptrSem)){
+        perror("Unable to increase semaphore.");
+        return BG_FAIL;
+    }
+    return BG_SUCCESS;
+}
+
+// down == P, acquire, wait, pend, procure
+BG_CODES_e semaphore_down(sem_t* ptrSem){
+
+    if(0 != sem_wait(ptrSem)){
+        perror("Unable to increase semaphore.");
+        return BG_FAIL;
+    }
+    return BG_SUCCESS;
+}
 
 int main(){
     sem_t* semaphore = NULL;
