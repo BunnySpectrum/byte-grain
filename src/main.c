@@ -1,5 +1,6 @@
 // from https://realpython.com/python-bindings-overview/#c-or-c-source
 #include <stdio.h>
+#include <string.h>
 
 #include <sys/types.h>
 
@@ -18,6 +19,10 @@ typedef enum {
     BG_TIMEOUT,
 } BG_CODES_e;
 
+#define SHM_NAME "bg_shm"
+#define SEM_NAME "bg_sem"
+#define SHM_SIZE 1024
+
 /*
 // Create shared memory object
 // TODO tests
@@ -28,7 +33,7 @@ typedef enum {
 //  - length of name exceeds PATH_MAX (ENAMETOOLONG)
 */  
 
-BG_CODES_e create_shared_memory(const char* name, int* fdSharedMem){
+BG_CODES_e create_shared_memory(const char* name, int* fdMem){
 
     int fd;
     /*
@@ -36,13 +41,14 @@ BG_CODES_e create_shared_memory(const char* name, int* fdSharedMem){
     User R/W permissions (0600) (https://man7.org/linux/man-pages/man2/open.2.html)
     https://man7.org/linux/man-pages/man3/shm_open.3.html
     */
-    fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    // fd = shm_open(name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL | O_TRUNC, S_IRUSR | S_IWUSR);
     if(fd == -1){
-        perror("Unable to create shared memory.");
+        perror("Unable to create shared memory:");
         return BG_FAIL;
     }
 
-    *fdSharedMem = fd;
+    *fdMem = fd;
 
     return BG_SUCCESS;
 }
@@ -64,9 +70,9 @@ BG_CODES_e unlink_shared_memory(const char* name){
 //      - length > max file size (EFBIG or EINVAL)
 //      - fd not open for writing (EBADF or EINVAL)
 */
-BG_CODES_e resize_shared_memory(int fdSharedMem, off_t size){
-    if(0 != ftruncate(fdSharedMem, size)){
-        perror("Unable to resize shared memory.");
+BG_CODES_e resize_shared_memory(int fdMem, off_t size){
+    if(0 != ftruncate(fdMem, size)){
+        perror("Unable to resize shared memory");
         return BG_FAIL;
     }
 
@@ -74,13 +80,13 @@ BG_CODES_e resize_shared_memory(int fdSharedMem, off_t size){
 
 }
 
-BG_CODES_e mmap_shared_memory(int fdMem, size_t size, void* ptrMem){
+BG_CODES_e mmap_shared_memory(int fdMem, size_t size, void** ptrMem){
 
-    ptrMem = mmap((void*)0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fdMem, 0);
+    *ptrMem = mmap((void*)0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fdMem, 0);
 
     if(MAP_FAILED == ptrMem){
         perror("Unable to mmap shared memory.");
-        ptrMem = NULL;
+        *ptrMem = NULL;
         return BG_FAIL;
     }
 
@@ -98,13 +104,13 @@ BG_CODES_e munmap_shared_memory(void* ptrMem, size_t size){
 }
 
 
-BG_CODES_e semaphore_open(const char* name, sem_t* ptrSem){
+BG_CODES_e semaphore_open(const char* name, sem_t** ptrSem){
 
-    ptrSem = sem_open(name, O_CREAT, S_IRUSR | S_IWUSR, 0);
+    *ptrSem = sem_open(name, O_CREAT, S_IRUSR | S_IWUSR, 0);
 
-    if(MAP_FAILED == ptrSem){
+    if(MAP_FAILED == *ptrSem){
         perror("Unable to open semamphore.");
-        ptrSem = NULL;
+        *ptrSem = NULL;
         return BG_FAIL;
     }
 
@@ -154,21 +160,124 @@ BG_CODES_e semaphore_down(sem_t* ptrSem){
 }
 
 int main(){
-    sem_t* semaphore = NULL;
-    void* sharedMem = NULL;
-
+    sem_t* ptrSem = NULL;
+    void* ptrSharedMem = NULL;
     int fdMem;
+    char memBuf[SHM_SIZE];
+    char val = 97; //a
 
-    if(BG_SUCCESS != create_shared_memory("test", &fdMem)){
+    // Create shared memory
+    unlink_shared_memory(SHM_NAME);
+    // return -1;
+    if(BG_SUCCESS != create_shared_memory(SHM_NAME, &fdMem)){
         return -1;
     }
+    printf("Created shared memory: %d\n", fdMem);
+    // close(fdMem);
+    // return -1;
 
-    printf("Created shared memory\n");
-
-    if(BG_SUCCESS != resize_shared_memory(fdMem, 1024)){
+    // Size memory
+    if(BG_SUCCESS != resize_shared_memory(fdMem, (off_t)SHM_SIZE)){
         return -1;
     }
     printf("Resized shared memory\n");
+
+    //Mmap
+    if(BG_SUCCESS != mmap_shared_memory(fdMem, SHM_SIZE, &ptrSharedMem)){
+        return -1;
+    }
+    printf("Mmap shared memory: %p\n", ptrSharedMem);
+
+
+    // Create semaphore
+    if(BG_SUCCESS != semaphore_open(SEM_NAME, &ptrSem)){
+        return -1;
+    }
+    printf("Opened semaphore\n");
+
+
+    // Write initial value to shared memory
+    printf("Writing initial value\n");
+    sprintf(memBuf, "%c", val);
+    strcpy((char *)ptrSharedMem, memBuf);
+
+
+    // Release semaphore
+    if(BG_SUCCESS != semaphore_up(ptrSem)){
+        printf("Error initial sem up\n");
+        goto CLEANUP;
+    }
+    printf("Initial semaphore increment\n");
+
+
+    // Begin loop
+    for(int idx=0; idx<10; idx++){
+        printf("Loop %d.\n", idx);
+
+        // Acquire/decrement semaphore
+        if(BG_SUCCESS != semaphore_down(ptrSem)){
+            printf("(%d) Error sem down\n", __LINE__);
+            goto CLEANUP;
+        }
+
+        // Write to shared memory
+        val++;
+        sprintf(memBuf, "%c", val);
+        strcpy((char *)ptrSharedMem, memBuf);
+
+
+        // Release/increment semaphore
+        if(BG_SUCCESS != semaphore_up(ptrSem)){
+            printf("(%d) Error sem up\n", __LINE__);
+            goto CLEANUP;
+        }
+
+        //Wait 5 sec
+        sleep(5);
+    }
+
+CLEANUP:
+    // Acquire/decrement semaphore
+    if(BG_SUCCESS != semaphore_down(ptrSem)){
+        printf("(%d) Cleanup error sem down\n", __LINE__);
+    }
+
+
+    // m-unmap memory
+    if(BG_SUCCESS != munmap_shared_memory(ptrSharedMem, SHM_SIZE)){
+        return -1;
+    }
+    printf("M-unmaped shared memory\n");
+
+
+    // close file descriptor
+    if (-1 == close(fdMem)) {
+        perror("Error closing fd");
+    }
+
+
+    // unlink shared memory
+    if(BG_SUCCESS != unlink_shared_memory(SHM_NAME)){
+        return -1;
+    }
+    printf("Unlinked shared memory\n");
+
+
+    // close semaphore
+    if(BG_SUCCESS != semaphore_close(ptrSem)){
+        return -1;
+    }
+    printf("Closed semaphore\n");
+
+
+    // unlinke semaphore
+    if(BG_SUCCESS != semaphore_unlink(SEM_NAME)){
+        return -1;
+    }
+    printf("Unlinked semaphore\n");
+
+
+    printf("Fin\n");
 
 
 }

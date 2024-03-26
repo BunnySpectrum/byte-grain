@@ -2,6 +2,10 @@ from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QMainWindow, QLa
 from PyQt6.QtCore import QSize, Qt, QTimer
 from PyQt6 import QtGui, uic
 
+import posix_ipc
+import mmap
+import os, sys
+
 class Canvas:
     def __init__(self, width, height):
         self.width = int(width)
@@ -31,6 +35,9 @@ import sys
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.lastVal = None
+        self.setup_mailbox()
+
         self.gfxWidth = 400
         self.gfxHeight = 400
         self.grainLength = 10
@@ -77,6 +84,24 @@ class MainWindow(QMainWindow):
     def update(self):
         self.canvas.update()
         self.draw_canvas()
+        self.check_messages()
+
+    def setup_mailbox(self):
+        self.mem = posix_ipc.SharedMemory("bg_shm")
+        self.sem = posix_ipc.Semaphore("bg_sem")
+        self.mapfile = mmap.mmap(self.mem.fd, self.mem.size)
+        os.close(self.mem.fd)
+
+    def check_messages(self):
+        self.sem.acquire()
+
+        self.mapfile.seek(0)
+        val = self.mapfile.read_byte()
+        self.sem.release()
+
+        if(self.lastVal != val):
+            print(f"Got: {chr(val)}\n")
+            self.lastVal = val
 
     def mousePressEvent(self, e):
         print(e.pos())
