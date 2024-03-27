@@ -3,6 +3,8 @@
 #include <string.h>
 
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 
 #include <semaphore.h>
 
@@ -22,6 +24,8 @@ typedef enum {
 #define SHM_NAME "bg_shm"
 #define SEM_NAME "bg_sem"
 #define SHM_SIZE 1024
+
+#define SOCK_PATH "~/sockets/test"
 
 /*
 // Create shared memory object
@@ -159,6 +163,59 @@ BG_CODES_e semaphore_down(sem_t* ptrSem){
     return BG_SUCCESS;
 }
 
+
+/*
+    Unix domain sockets
+*/
+
+BG_CODES_e create_unix_socket(int* sock){
+
+    *sock = socket(AF_UNIX, SOCK_STREAM, 0 );
+    if(*sock == -1){
+        perror("Unable to create socket:");
+        *sock = NULL;
+        return BG_FAIL;
+    }
+
+    return BG_SUCCESS;
+}
+
+BG_CODES_e bind_unix_socket(int sock, const char* name){
+    int len;
+
+    struct sockaddr_un local = {
+        .sun_family = AF_UNIX,
+        // .sun_path = SOCK_PATh,
+    };
+    strcpy(local.sun_path, name);
+    unlink(local.sun_path);
+    len = strlen(local.sun_path) + sizeof(local.sun_family);
+
+    if(-1 == bind(sock, (struct sockaddr *)&local, len)){
+        perror("Unable to bind socket:");
+        return BG_FAIL;
+    }
+
+    return BG_SUCCESS;
+}
+
+BG_CODES_e listen_unix_socket(int sock, int count){
+
+    if(-1 == listen(sock, count)){
+        perror("Error listening:");
+        return BG_FAIL;
+    }
+
+    return BG_SUCCESS;
+}
+
+
+
+
+
+
+
+
 int main(){
     sem_t* ptrSem = NULL;
     void* ptrSharedMem = NULL;
@@ -166,6 +223,7 @@ int main(){
     char memBuf[SHM_SIZE];
     char val = 97; //a
 
+/*
     // Create shared memory
     unlink_shared_memory(SHM_NAME);
     // return -1;
@@ -208,6 +266,24 @@ int main(){
         goto CLEANUP;
     }
     printf("Initial semaphore increment\n");
+*/
+
+    // Create UN socket
+    int s1;
+    if(BG_SUCCESS != create_unix_socket(&s1)){
+        return -1;
+    }
+
+    //Bind
+    if(BG_SUCCESS != bind_unix_socket(s1, SOCK_PATH)){
+        return -1;
+    }   
+
+    //Listen
+    if(BG_SUCCESS != listen_unix_socket(s1, 1)){
+        return -1;
+    }
+
 
 
     // Begin loop
