@@ -14,6 +14,8 @@
 #include <fcntl.h>
 
 #include <unistd.h>
+#include <stdlib.h>
+#include <sys/syslimits.h>
 
 typedef enum {
     BG_FAIL = 0,
@@ -25,7 +27,7 @@ typedef enum {
 #define SEM_NAME "bg_sem"
 #define SHM_SIZE 1024
 
-#define SOCK_PATH "~/sockets/test"
+#define SOCK_PATH "test_socket"
 
 /*
 // Create shared memory object
@@ -173,7 +175,7 @@ BG_CODES_e create_unix_socket(int* sock){
     *sock = socket(AF_UNIX, SOCK_STREAM, 0 );
     if(*sock == -1){
         perror("Unable to create socket:");
-        *sock = NULL;
+        sock = NULL;
         return BG_FAIL;
     }
 
@@ -181,17 +183,17 @@ BG_CODES_e create_unix_socket(int* sock){
 }
 
 BG_CODES_e bind_unix_socket(int sock, const char* name){
-    int len;
+    // int len;
 
     struct sockaddr_un local = {
         .sun_family = AF_UNIX,
         // .sun_path = SOCK_PATh,
     };
-    strcpy(local.sun_path, name);
+    strncpy(local.sun_path, name, sizeof(local.sun_path) - 1);
+    // printf("In bind: %s.\n", local.sun_path);
     unlink(local.sun_path);
-    len = strlen(local.sun_path) + sizeof(local.sun_family);
 
-    if(-1 == bind(sock, (struct sockaddr *)&local, len)){
+    if(-1 == bind(sock, (struct sockaddr *)&local, sizeof(local))){
         perror("Unable to bind socket:");
         return BG_FAIL;
     }
@@ -217,11 +219,11 @@ BG_CODES_e listen_unix_socket(int sock, int count){
 
 
 int main(){
-    sem_t* ptrSem = NULL;
-    void* ptrSharedMem = NULL;
-    int fdMem;
-    char memBuf[SHM_SIZE];
-    char val = 97; //a
+    // sem_t* ptrSem = NULL;
+    // void* ptrSharedMem = NULL;
+    // int fdMem;
+    // char memBuf[SHM_SIZE];
+    // char val = 97; //a
 
 /*
     // Create shared memory
@@ -269,13 +271,23 @@ int main(){
 */
 
     // Create UN socket
-    int s1;
+    int s1, s2;
+    char msgBuffer[100];
+    char *symlinkpath = "test_socket2";
+    char actualpath [PATH_MAX+1];
+
+
     if(BG_SUCCESS != create_unix_socket(&s1)){
         return -1;
     }
 
     //Bind
-    if(BG_SUCCESS != bind_unix_socket(s1, SOCK_PATH)){
+    // if(NULL == realpath(symlinkpath, actualpath)){
+    //     perror("Error resolving path:");
+    //     return -1;
+    // }
+
+    if(BG_SUCCESS != bind_unix_socket(s1, symlinkpath)){
         return -1;
     }   
 
@@ -285,75 +297,51 @@ int main(){
     }
 
 
+    struct sockaddr_un remote = {
+        .sun_family = AF_UNIX,
+    };
 
     // Begin loop
-    for(int idx=0; idx<10; idx++){
-        printf("Loop %d.\n", idx);
-
-        // Acquire/decrement semaphore
-        if(BG_SUCCESS != semaphore_down(ptrSem)){
-            printf("(%d) Error sem down\n", __LINE__);
-            goto CLEANUP;
+    // from https://beej.us/guide/bgipc/html/#unixsock
+    while(1){
+        int done, n;
+        printf("Waiting for connection\n");
+        socklen_t slen = sizeof(remote);
+        if ((s2 = accept(s1, (struct sockaddr *)&remote, &slen)) == -1){
+            perror("accept:");
+            exit(1);
         }
+
+        printf("Connected.\n");
+
+        done = 0;
+        do{
+            n = recv(s2, msgBuffer, sizeof(msgBuffer), 0);
+            if( n<=0 ){
+                if (n < 0){
+                    perror("recv:");
+                }
+                done = 1;
+            }
+            if(!done){
+                if(send(s2, msgBuffer, n, 0) < 0){
+                    perror("send:");
+                    done = 1;
+                }
+            }
+        } while(!done);
+        printf("\tClosing.\n");
+        close(s2);
+    }
+    printf("Ending\n");
+    return 0;
+
+  
 
         // Write to shared memory
-        val++;
-        sprintf(memBuf, "%c", val);
-        strcpy((char *)ptrSharedMem, memBuf);
-
-
-        // Release/increment semaphore
-        if(BG_SUCCESS != semaphore_up(ptrSem)){
-            printf("(%d) Error sem up\n", __LINE__);
-            goto CLEANUP;
-        }
-
-        //Wait 5 sec
-        sleep(5);
-    }
-
-CLEANUP:
-    // Acquire/decrement semaphore
-    if(BG_SUCCESS != semaphore_down(ptrSem)){
-        printf("(%d) Cleanup error sem down\n", __LINE__);
-    }
-
-
-    // m-unmap memory
-    if(BG_SUCCESS != munmap_shared_memory(ptrSharedMem, SHM_SIZE)){
-        return -1;
-    }
-    printf("M-unmaped shared memory\n");
-
-
-    // close file descriptor
-    if (-1 == close(fdMem)) {
-        perror("Error closing fd");
-    }
-
-
-    // unlink shared memory
-    if(BG_SUCCESS != unlink_shared_memory(SHM_NAME)){
-        return -1;
-    }
-    printf("Unlinked shared memory\n");
-
-
-    // close semaphore
-    if(BG_SUCCESS != semaphore_close(ptrSem)){
-        return -1;
-    }
-    printf("Closed semaphore\n");
-
-
-    // unlinke semaphore
-    if(BG_SUCCESS != semaphore_unlink(SEM_NAME)){
-        return -1;
-    }
-    printf("Unlinked semaphore\n");
-
-
-    printf("Fin\n");
+        // val++;
+        // sprintf(memBuf, "%c", val);
+        // strcpy((char *)ptrSharedMem, memBuf);
 
 
 }
