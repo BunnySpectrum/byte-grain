@@ -301,6 +301,8 @@ int main(){
         .sun_family = AF_UNIX,
     };
 
+    signal(SIGPIPE, SIG_IGN);
+
     // Begin loop
     // from https://beej.us/guide/bgipc/html/#unixsock
     while(1){
@@ -316,19 +318,20 @@ int main(){
 
         done = 0;
         do{
-            n = recv(s2, msgBuffer, sizeof(msgBuffer), 0);
-            if( n<=0 ){
-                if (n < 0){
-                    perror("recv:");
-                }
-                done = 1;
-            }
-            if(!done){
-                if(send(s2, msgBuffer, n, 0) < 0){
+            printf(".\n");
+            for(int i = 0; i<40; i++){
+                usleep(33*1000);
+                msgBuffer[0] = i;
+                msgBuffer[1] = 2;
+                // printf("About to send\n");
+                if(send(s2, msgBuffer, 2, 0) < 0){
+                    printf("Opps\n]");
                     perror("send:");
                     done = 1;
+                    break;
                 }
             }
+
         } while(!done);
         printf("\tClosing.\n");
         close(s2);

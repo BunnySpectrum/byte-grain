@@ -1,10 +1,13 @@
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QMainWindow, QLabel
-from PyQt6.QtCore import QSize, Qt, QTimer
+from PyQt6.QtCore import QSize, Qt, QTimer, QThread
 from PyQt6 import QtGui, uic
 
 import posix_ipc
 import mmap
 import os, sys
+import socket
+
+from SocketClient import Worker
 
 class Canvas:
     def __init__(self, width, height):
@@ -35,8 +38,16 @@ import sys
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.lastVal = None
-        self.setup_mailbox()
+
+        self.thread = QThread()
+        self.worker = Worker()
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.progress.connect(self.updateImage)
+        self.thread.start()
+
+
+        # self.setup_mailbox()
 
         self.gfxWidth = 400
         self.gfxHeight = 400
@@ -55,6 +66,7 @@ class MainWindow(QMainWindow):
         self.canvas.add_grain(20, 13, QtGui.QColorConstants.Black)
         self.canvas.add_grain(20, 14, QtGui.QColorConstants.Red)
         self.draw_canvas()
+        
         self.start_timer()
 
     def start_timer(self):
@@ -82,26 +94,28 @@ class MainWindow(QMainWindow):
         self.label.setPixmap(canvas)
 
     def update(self):
+        pass
+        # self.canvas.update()
+        # self.draw_canvas()
+
+    def updateImage(self, value):
+        # print(f"UI got {value!r}\n")
+        self.canvas.add_grain(value[0], value[1], QtGui.QColorConstants.Blue)
         self.canvas.update()
         self.draw_canvas()
-        self.check_messages()
 
-    def setup_mailbox(self):
-        self.mem = posix_ipc.SharedMemory("bg_shm")
-        self.sem = posix_ipc.Semaphore("bg_sem")
-        self.mapfile = mmap.mmap(self.mem.fd, self.mem.size)
-        os.close(self.mem.fd)
+    # def setup_mailbox(self):
+    #     addr = "test_socket2"
+    #     # data = None
+    #     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+    #         s.connect(addr)
+    #         s.sendall(b"Hello, world")
+    #         data = s.recv(1024)
+
+    #     print(f"Received {data!r}")
 
     def check_messages(self):
-        self.sem.acquire()
-
-        self.mapfile.seek(0)
-        val = self.mapfile.read_byte()
-        self.sem.release()
-
-        if(self.lastVal != val):
-            print(f"Got: {chr(val)}\n")
-            self.lastVal = val
+        pass
 
     def mousePressEvent(self, e):
         print(e.pos())
