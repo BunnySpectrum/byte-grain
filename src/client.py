@@ -2,6 +2,9 @@ from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QMainWindow, QLa
 from PyQt6.QtCore import QSize, Qt, QTimer, QThread
 from PyQt6 import QtGui, uic
 
+import numpy as np
+
+
 import posix_ipc
 import mmap
 import os, sys
@@ -11,25 +14,32 @@ from SocketClient import Worker
 
 class Canvas:
     def __init__(self, width, height):
-        self.width = int(width)
-        self.height = int(height)
-        self.data = [[QtGui.QColorConstants.White]*self.height for _ in range(self.width)]
+        self.colCount = int(width)
+        self.rowCount = int(height)
+        self.data = np.zeros((self.rowCount, self.colCount), QtGui.QColor)
+        self.data.fill(QtGui.QColorConstants.White)
 
-    def add_grain(self, x, y, value=QtGui.QColorConstants.Black):
-        self.data[x][y] = value
+    def add_grain(self, row, col, value=QtGui.QColorConstants.Black):
+        self.data[row][col] = value
+
+    def load_image(self, data):
+        for x in range(0):
+            pass
 
     def update(self):
-        newData = [[QtGui.QColorConstants.White]*self.height for _ in range(self.width)]
-        for x in range(0, self.width):
-            for y in range(0, self.height):
-                if self.data[x][y] != QtGui.QColorConstants.White:
+        newData = np.zeros((self.rowCount, self.colCount), QtGui.QColor)
+        newData.fill(QtGui.QColorConstants.White)
+
+        for row in range(0, self.rowCount):
+            for col in range(0, self.colCount):
+                if self.data[row][col] != QtGui.QColorConstants.White:
                     # print(f"({x}, {y}) = {self.data[x][y]}")
-                    if y+1 == self.height:
-                        newData[x][y] = self.data[x][y]
-                    elif self.data[x][y+1] == QtGui.QColorConstants.White:
-                        newData[x][y+1] = self.data[x][y]
+                    if row+1 == self.rowCount:
+                        newData[row][col] = self.data[row][col]
+                    elif self.data[row+1][col] == QtGui.QColorConstants.White:
+                        newData[row+1][col] = self.data[row][col]
                     else:
-                        newData[x][y] = self.data[x][y]
+                        newData[row][col] = self.data[row][col]
         self.data = newData
 
 
@@ -54,12 +64,12 @@ class MainWindow(QMainWindow):
         self.grainLength = 10
 
         self.label = QLabel()
-        pixmap = QtGui.QPixmap(400, 400)
+        pixmap = QtGui.QPixmap(600, 600)
         pixmap.fill(Qt.GlobalColor.white)
         self.label.setPixmap(pixmap)
 
         self.setCentralWidget(self.label)
-        self.canvas = Canvas(self.gfxWidth/self.grainLength, self.gfxHeight/self.grainLength)
+        self.canvas = Canvas(32, 32)
         self.canvas.add_grain(20, 15, QtGui.QColorConstants.Black)
         # print(self.canvas.data)
         self.canvas.add_grain(22, 15, QtGui.QColorConstants.Black)
@@ -79,16 +89,21 @@ class MainWindow(QMainWindow):
         canvas = self.label.pixmap()
         
         # painter.setBrush(QtGui.QColorConstants.Red)
-        for x in range(0, self.canvas.width):
-            for y in range(0, self.canvas.height):
-                if self.canvas.data[x][y] != None:
+        for row in range(0, self.canvas.rowCount):
+            for col in range(0, self.canvas.colCount):
+                if self.canvas.data[row][col] != None:
                     # print("Hit")
                     painter = QtGui.QPainter(canvas)
                     pen = QtGui.QPen()
                     pen.setWidth(self.grainLength)
-                    pen.setColor(self.canvas.data[x][y])
+                    colorCode = self.canvas.data[row][col]
+                    if colorCode == 0:
+                        pen.setColor(QtGui.QColorConstants.White)
+                    else:
+                        pen.setColor(QtGui.QColorConstants.Black)
+
                     painter.setPen(pen)
-                    painter.drawPoint(x*self.grainLength, y*self.grainLength)
+                    painter.drawPoint(col*self.grainLength+100, row*self.grainLength+100)
                     painter.end()
 
         self.label.setPixmap(canvas)
@@ -100,8 +115,9 @@ class MainWindow(QMainWindow):
 
     def updateImage(self, value):
         # print(f"UI got {value!r}\n")
-        self.canvas.add_grain(value[0], value[1], QtGui.QColorConstants.Blue)
-        self.canvas.update()
+        self.canvas.data = value
+        # self.canvas.add_grain(value[0], value[1], QtGui.QColorConstants.Blue)
+        # self.canvas.update()
         self.draw_canvas()
 
     # def setup_mailbox(self):
