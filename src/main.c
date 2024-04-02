@@ -91,6 +91,40 @@ void init_canvas(char* buf, int color){
     }
 }
 
+void add_grain(char* buf, int row, int col, int color){
+    buf[row*ROW_MAX + col] = color ;
+}
+
+#define GRAIN_2D_TO_1D(row, col) ((row)*(ROW_MAX) + (col))
+
+void update_grains(char* buf){
+    int row, col, idx;
+    int below, current;
+    for(row = 0; row < ROW_MAX; row++){
+        for(col = 0; col < COL_MAX; col++){
+            if(row+1 == ROW_MAX){
+                continue;
+            }
+            current = GRAIN_2D_TO_1D(row, col);
+            below = GRAIN_2D_TO_1D(row+1, col);
+
+            if((buf[current] & 0x80) > 0){
+                continue;
+            }
+
+            if((buf[below] & 0x7F) == COLOR_WHITE){
+                buf[below] = buf[current] | 0x80;
+                buf[current] = (uint8_t)(COLOR_WHITE | 0x80);
+            }else{
+                buf[current] |= 0x80;
+            }
+        }
+    }
+    for(idx=0; idx<PIX_COUNT; idx++){
+        buf[idx] &= ~(0x80);
+    }
+
+}
 
 
 
@@ -101,9 +135,9 @@ int main(){
     char msgBuffer[PIX_COUNT];
 
     char *symlinkpath = "test_socket2";
-    char actualpath [PATH_MAX+1];
+    // char actualpath [PATH_MAX+1];
 
-    init_canvas(msgBuffer, COLOR_WHITE);
+    // init_canvas(msgBuffer, COLOR_WHITE);
 
 
     if(BG_SUCCESS != create_unix_socket(&s1)){
@@ -135,7 +169,7 @@ int main(){
     // Begin loop
     // from https://beej.us/guide/bgipc/html/#unixsock
     while(1){
-        int done, n;
+        int done;
         printf("Waiting for connection\n");
         socklen_t slen = sizeof(remote);
         if ((s2 = accept(s1, (struct sockaddr *)&remote, &slen)) == -1){
@@ -145,13 +179,15 @@ int main(){
 
         printf("Connected.\n");
         init_canvas(msgBuffer, COLOR_WHITE);
+        add_grain(msgBuffer, 0, 16, COLOR_BLACK);
+        add_grain(msgBuffer, 0, 15, COLOR_RED);
 
         done = 0;
         do{
             printf(".\n");
-            for(int i = 0; i<PIX_COUNT; i++){
+            for(int i = 0; i<32; i++){
                 usleep(33*1000);
-                msgBuffer[i] = COLOR_BLACK;
+                update_grains(msgBuffer);
 
                 if(send(s2, msgBuffer, sizeof(msgBuffer), 0) < 0){
                     printf("Opps\n]");
@@ -160,6 +196,7 @@ int main(){
                     break;
                 }
             }
+            add_grain(msgBuffer, 0, 15, COLOR_RED);
 
         } while(!done);
         printf("\tClosing.\n");

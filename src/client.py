@@ -43,6 +43,16 @@ class Canvas:
         self.data = newData
 
 
+def int_to_qcolor(val):
+    if val == 1:
+        return QtGui.QColorConstants.Black
+    elif val == 2:
+        return QtGui.QColorConstants.Red
+    elif val == 3:
+        return QtGui.QColorConstants.Blue
+    else:
+        return QtGui.QColorConstants.White
+
 # Only needed for access to command line arguments
 import sys
 class MainWindow(QMainWindow):
@@ -96,11 +106,8 @@ class MainWindow(QMainWindow):
                     painter = QtGui.QPainter(canvas)
                     pen = QtGui.QPen()
                     pen.setWidth(self.grainLength)
-                    colorCode = self.canvas.data[row][col]
-                    if colorCode == 0:
-                        pen.setColor(QtGui.QColorConstants.White)
-                    else:
-                        pen.setColor(QtGui.QColorConstants.Black)
+                    colorCode = int_to_qcolor(self.canvas.data[row][col])
+                    pen.setColor(colorCode)
 
                     painter.setPen(pen)
                     painter.drawPoint(col*self.grainLength+100, row*self.grainLength+100)
@@ -133,14 +140,14 @@ class MainWindow(QMainWindow):
     def check_messages(self):
         pass
 
-    def mousePressEvent(self, e):
-        print(e.pos())
-        if(e.button() == Qt.MouseButton.RightButton):
-            val = QtGui.QColorConstants.Red
-        else:
-            val = QtGui.QColorConstants.Black 
+    # def mousePressEvent(self, e):
+    #     print(e.pos())
+    #     if(e.button() == Qt.MouseButton.RightButton):
+    #         val = QtGui.QColorConstants.Red
+    #     else:
+    #         val = QtGui.QColorConstants.Black 
 
-        self.canvas.add_grain(int(e.pos().x()/10), int(e.pos().y()/10), val)
+    #     self.canvas.add_grain(int(e.pos().x()/10), int(e.pos().y()/10), val)
 
 # You need one (and only one) QApplication instance per application.
 # Pass in sys.argv to allow command line arguments for your app.
