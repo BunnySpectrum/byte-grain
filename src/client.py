@@ -74,8 +74,8 @@ class MainWindow(QMainWindow):
         self.grainLength = 10
 
         self.label = QLabel()
-        pixmap = QtGui.QPixmap(600, 600)
-        pixmap.fill(Qt.GlobalColor.white)
+        pixmap = QtGui.QPixmap(500, 500)
+        pixmap.fill(Qt.GlobalColor.black)
         self.label.setPixmap(pixmap)
 
         self.setCentralWidget(self.label)
