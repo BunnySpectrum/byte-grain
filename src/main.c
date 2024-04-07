@@ -105,6 +105,17 @@ void add_grain(char *buf, int row, int col, int color)
 }
 
 #define GRAIN_2D_TO_1D(row, col) ((row) * (ROW_MAX) + (col))
+#define GET_GRAIN_VALID(grain) (((grain) >> 7) & 0x1)
+#define GET_GRAIN_ACTIVE(grain) (((grain) >> 6) & 0x1)
+
+#define SET_GRAIN_VALID(grain) ( (grain) |= (1<<7) )
+#define CLEAR_GRAIN_VALID(grain) ( (grain) &= ~(1<<7) )
+
+#define SET_GRAIN_ACTIVE(grain) ( (grain) |= (1<<6) )
+#define CLEAR_GRAIN_ACTIVE(grain) ( (grain) &= ~(1<<6) )
+
+#define SET_GRAIN_COLOR(grain, color) ( (grain) = ( (grain) & ~0x3F) | ( (color) & 0x3F) )
+#define GET_GRAIN_COLOR(grain) ( (grain) & 0x3F )
 
 void update_grains(char *buf)
 {
@@ -129,37 +140,46 @@ void update_grains(char *buf)
                 continue;
             }
 
-            if ((buf[below] & 0x7F) == COLOR_WHITE)
+            if ( COLOR_WHITE == GET_GRAIN_COLOR(buf[below]) )
             {
-                if (buf[below2] != COLOR_WHITE)
+                if (COLOR_WHITE !=  GET_GRAIN_COLOR(buf[below2]) )
                 {
-                    if (buf[belowLeft] == COLOR_WHITE)
+                    if ( COLOR_WHITE == GET_GRAIN_COLOR(buf[belowLeft]) )
                     {
                         if ((rand() % 1) == 0)
                         {
-                            buf[belowLeft] = buf[current] | 0x80;
-                            buf[current] = (uint8_t)(COLOR_WHITE | 0x80);
+                            buf[belowLeft] = buf[current];
+                            SET_GRAIN_COLOR(buf[current], COLOR_WHITE);
+
+                            SET_GRAIN_VALID(buf[belowLeft]);
+                            SET_GRAIN_VALID(buf[current]);
                             continue;
                         }
                     }
 
-                    if (buf[belowRight] == COLOR_WHITE)
+                    if ( COLOR_WHITE == GET_GRAIN_COLOR(buf[belowRight]) )
                     {
                         if ((rand() % 1) == 0)
                         {
-                            buf[belowRight] = buf[current] | 0x80;
-                            buf[current] = (uint8_t)(COLOR_WHITE | 0x80);
+                            buf[belowRight] = buf[current];
+                            SET_GRAIN_COLOR(buf[current], COLOR_WHITE);
+
+                            SET_GRAIN_VALID(buf[belowRight]);
+                            SET_GRAIN_VALID(buf[current]);
                             continue;
                         }
                     }
                 }
 
-                buf[below] = buf[current] | 0x80;
-                buf[current] = (uint8_t)(COLOR_WHITE | 0x80);
+                buf[below] = buf[current];
+                SET_GRAIN_COLOR(buf[current], COLOR_WHITE);
+
+                SET_GRAIN_VALID(buf[below]);
+                SET_GRAIN_VALID(buf[current]);
             }
             else
             {
-                buf[current] |= 0x80;
+                SET_GRAIN_VALID(buf[current]);
             }
         }
     }
