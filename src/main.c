@@ -20,6 +20,7 @@
 #define ROW_MAX 32
 #define COL_MAX 32
 #define PIX_COUNT ROW_MAX *COL_MAX
+#define DELAY_MS 33
 
 typedef enum
 {
@@ -164,36 +165,21 @@ void update_grains(uint8_t *buf)
             }
             else if (1 == GET_GRAIN_ACTIVE(buf[current]))
             {
-                if ((rand() % 2) == 0){
-                    // look left
-                    if (IS_EMPTY_GRAIN(buf[belowLeft])){
-                        buf[belowLeft] = buf[current];
-                        CLEAR_GRAIN(buf[current]);
+                int checkSquare = ((rand() % 2) == 0) ? belowLeft : belowRight;
 
-                        SET_GRAIN_VALID(buf[belowLeft]);
-                        SET_GRAIN_VALID(buf[current]);
+                if (IS_EMPTY_GRAIN(buf[checkSquare]))
+                {
+                    buf[checkSquare] = buf[current];
+                    CLEAR_GRAIN(buf[current]);
 
-                        // CLEAR_GRAIN_ACTIVE(buf[belowLeft]);
-                        continue;
-                    }
-                }else{
-                    // look right
-                    if (IS_EMPTY_GRAIN(buf[belowRight])){
-                        buf[belowRight] = buf[current];
-                        CLEAR_GRAIN(buf[current]);
+                    SET_GRAIN_VALID(buf[checkSquare]);
+                    SET_GRAIN_VALID(buf[current]);
 
-                        SET_GRAIN_VALID(buf[belowRight]);
-                        SET_GRAIN_VALID(buf[current]);
-
-                        // CLEAR_GRAIN_ACTIVE(buf[belowRight]);
-                        continue;
-                    }
+                    continue;
                 }
-
 
                 CLEAR_GRAIN_ACTIVE(buf[current]);
                 SET_GRAIN_VALID(buf[current]);
-                
             }
             else
             {
@@ -263,19 +249,19 @@ int main()
         printf("Connected.\n");
         init_canvas(msgBuffer, COLOR_WHITE);
         // add_grain(msgBuffer, 0, 16, COLOR_BLACK);
-        add_grain(msgBuffer, 0, 15, COLOR_RED);
+        // add_grain(msgBuffer, 0, 15, COLOR_RED);
 
-        add_grain(msgBuffer, 31, 15, COLOR_RED);
-        add_grain(msgBuffer, 30, 15, COLOR_RED);
-        add_grain(msgBuffer, 29, 15, COLOR_RED);
-        add_grain(msgBuffer, 28, 15, COLOR_RED);
-        add_grain(msgBuffer, 27, 15, COLOR_RED);
-        add_grain(msgBuffer, 26, 15, COLOR_RED);
-        add_grain(msgBuffer, 25, 15, COLOR_RED);
-        add_grain(msgBuffer, 24, 15, COLOR_RED);
-        add_grain(msgBuffer, 23, 15, COLOR_RED);
-        add_grain(msgBuffer, 22, 15, COLOR_RED);
-        add_grain(msgBuffer, 21, 15, COLOR_RED);
+        // add_grain(msgBuffer, 31, 15, COLOR_RED);
+        // add_grain(msgBuffer, 30, 15, COLOR_RED);
+        // add_grain(msgBuffer, 29, 15, COLOR_RED);
+        // add_grain(msgBuffer, 28, 15, COLOR_RED);
+        // add_grain(msgBuffer, 27, 15, COLOR_RED);
+        // add_grain(msgBuffer, 26, 15, COLOR_RED);
+        // add_grain(msgBuffer, 25, 15, COLOR_RED);
+        // add_grain(msgBuffer, 24, 15, COLOR_RED);
+        // add_grain(msgBuffer, 23, 15, COLOR_RED);
+        // add_grain(msgBuffer, 22, 15, COLOR_RED);
+        // add_grain(msgBuffer, 21, 15, COLOR_RED);
 
         done = 0;
         do
@@ -283,7 +269,7 @@ int main()
             printf("%d\n", (rand() % 2) == 0);
             for (int i = 0; i < 32; i++)
             {
-                usleep(33 * 1000);
+                usleep(DELAY_MS * 1000);
                 update_grains(msgBuffer);
 
                 if (send(s2, msgBuffer, sizeof(msgBuffer), 0) < 0)
