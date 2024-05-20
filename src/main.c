@@ -121,6 +121,14 @@ void add_grain(uint8_t *buf, int row, int col, int color)
 #define CLEAR_GRAIN(grain) ((grain) = 0x0)
 #define IS_EMPTY_GRAIN(grain) (COLOR_WHITE == GET_GRAIN_COLOR(grain))
 
+void move_grain_to_index(uint8_t *buf, int current, int new){
+    buf[new] = buf[current];
+    CLEAR_GRAIN(buf[current]);
+
+    SET_GRAIN_VALID(buf[new]);
+    SET_GRAIN_VALID(buf[current]);
+}
+
 void update_grains(uint8_t *buf)
 {
     int row, col, idx;
@@ -150,18 +158,12 @@ void update_grains(uint8_t *buf)
 
             if (IS_EMPTY_GRAIN(buf[below]))
             {
-                // printf("Current %#x\n", buf[current]);
                 // There is an empty space below us
-                buf[below] = buf[current];
-                CLEAR_GRAIN(buf[current]);
-
-                SET_GRAIN_VALID(buf[below]);
-                SET_GRAIN_VALID(buf[current]);
+                move_grain_to_index(buf, current, below);
 
                 // Mark the current grain as 'active' (in motion)
-                // printf("Below %#x\n", buf[below]);
                 SET_GRAIN_ACTIVE(buf[below]);
-                // printf("\t%#x\n", buf[below]);
+
             }
             else if (1 == GET_GRAIN_ACTIVE(buf[current]))
             {
@@ -169,12 +171,7 @@ void update_grains(uint8_t *buf)
 
                 if (IS_EMPTY_GRAIN(buf[checkSquare]))
                 {
-                    buf[checkSquare] = buf[current];
-                    CLEAR_GRAIN(buf[current]);
-
-                    SET_GRAIN_VALID(buf[checkSquare]);
-                    SET_GRAIN_VALID(buf[current]);
-
+                    move_grain_to_index(buf, current, checkSquare);
                     continue;
                 }
 
