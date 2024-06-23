@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "canvas.h"
-#include "socket_server.h"
-#include "bg_msg.h"
+#include "app/canvas.h"
+#include "xal/socket_server.h"
+#include "utils/bg_msg.h"
 
 #define DELAY_MS 33
 

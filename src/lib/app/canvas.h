@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include "bg_msg.h"
+#include "utils/bg_msg.h"
 
 #define ROW_MAX 32
 #define COL_MAX 32

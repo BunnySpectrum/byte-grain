@@ -11,6 +11,6 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 include_directories(../lib)
 add_executable(${PROJECT_NAME}
     main.c
-    ../lib/canvas.c
-    ../lib/socket_server.c
+    ../lib/app/canvas.c
+    ../lib/xal/socket_server.c
 )
