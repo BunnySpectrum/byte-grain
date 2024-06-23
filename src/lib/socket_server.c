@@ -50,6 +50,54 @@ BG_CODES_e listen_unix_socket(int sock, int count)
 }
 
 
+BG_CODES_e setup_socket(char* symLinkPath, sockServerConn_s *conn){
+    // Create UN socket
+
+    if (BG_SUCCESS != create_unix_socket( &(conn->s1)) )
+    {
+        return BG_FAIL;
+    }
+
+    // Bind
+    //  if(NULL == realpath(symlinkpath, actualpath)){
+    //      perror("Error resolving path:");
+    //      return -1;
+    //  }
+
+    if (BG_SUCCESS != bind_unix_socket(conn->s1, symLinkPath))
+    {
+        return BG_FAIL;
+    }
+
+    // Listen
+    if (BG_SUCCESS != listen_unix_socket(conn->s1, 1))
+    {
+        return BG_FAIL;
+    }
 
 
+    signal(SIGPIPE, SIG_IGN);
+    return BG_SUCCESS;
+}
 
+
+BG_CODES_e accept_conn(sockServerConn_s *conn){
+    socklen_t slen = sizeof(remote);
+    if ((conn->s2 = accept(conn->s1, (struct sockaddr *)&remote, &slen)) == -1)
+    {
+        return BG_FAIL;
+    }
+    return BG_SUCCESS;
+}
+
+BG_CODES_e close_conn(sockServerConn_s *conn){
+    close(conn->s2);
+    return BG_SUCCESS;
+}
+
+BG_CODES_e send_buffer(sockServerConn_s *conn, void* buffer, size_t length){
+    if (send(conn->s2, buffer, length, 0) < 0){
+        return BG_FAIL;
+    }
+    return BG_SUCCESS;
+}
