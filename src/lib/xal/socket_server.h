@@ -19,14 +19,10 @@
 #include <stdlib.h>
 #include <sys/syslimits.h>
 
+#include "utils/bg_codes.h"
+
 #define SOCK_PATH "test_socket"
 
-typedef enum
-{
-    BG_FAIL = 0,
-    BG_SUCCESS,
-    BG_TIMEOUT,
-} BG_CODES_e;
     
 static struct sockaddr_un remote = {
     .sun_family = AF_UNIX,

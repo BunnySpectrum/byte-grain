@@ -12,5 +12,13 @@ include_directories(../lib)
 add_executable(${PROJECT_NAME}
     main.c
     ../lib/app/canvas.c
+    ../lib/app/screen.c
+    ../lib/app/interface.c
+
+    ../lib/xsp/display.c
+    ../lib/xsp/socket_display.c
+    ../lib/xsp/ctrl_panel.c
+    ../lib/xsp/nv_memory.c
+
     ../lib/xal/socket_server.c
 )

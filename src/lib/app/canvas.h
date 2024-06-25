@@ -3,12 +3,16 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include "utils/bg_msg.h"
+#include "utils/bg_colors.h"
 
 #define ROW_MAX 32
 #define COL_MAX 32
 #define PIX_COUNT (ROW_MAX * COL_MAX)
 
+// Grain bit fields:
+//  7: valid flag
+//  6: active flag
+//  0-5: ID (only color for now)
 
 #define GRAIN_2D_TO_1D(row, col) ((row) * (ROW_MAX) + (col))
 #define GET_GRAIN_VALID(grain) (((grain) >> 7) & 0x1)
@@ -24,7 +28,7 @@
 #define GET_GRAIN_COLOR(grain) ((grain) & 0x3F)
 
 #define CLEAR_GRAIN(grain) ((grain) = 0x0)
-#define IS_EMPTY_GRAIN(grain) (COLOR_WHITE == GET_GRAIN_COLOR(grain))
+#define IS_EMPTY_GRAIN(grain) (BG_COLOR_WHITE == GET_GRAIN_COLOR(grain))
 
 
 
