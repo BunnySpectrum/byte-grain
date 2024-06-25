@@ -6,6 +6,7 @@ static sockServerConn_s conn;
 BG_CODES_e factory_socket_display(DisplayContext_s *displayCtx){
     displayCtx->display_register = socket_disp_register;
     displayCtx->display_init = socket_disp_init;
+    displayCtx->display_deinit = socket_disp_deinit;
     displayCtx->display_draw_pixel = socket_disp_draw_pixel;
     displayCtx->display_draw_buffer = socket_disp_draw_buffer;
 

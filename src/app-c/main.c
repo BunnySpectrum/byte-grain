@@ -8,7 +8,7 @@
 #include "utils/bg_msg.h"
 #include "utils/bg_colors.h"
 
-#define DELAY_MS 33
+#define FRAME_DELAY_MS 30
 DisplayContext_s dispCtx;
 
 int main()
@@ -18,7 +18,7 @@ int main()
         return BG_FAIL;
     }
 
-    if(BG_SUCCESS != socket_disp_register(&dispCtx.hDisplay)){
+    if(BG_SUCCESS != dispCtx.display_register(&dispCtx.hDisplay)){
         printf("Error registering socket_display.\n");
         return BG_FAIL;
     }else{
@@ -36,9 +36,11 @@ int main()
     while (1)
     {
         int done;
+        uint8_t newGrainCounter = 32;
 
         printf("Waiting for connection\n");
-        socket_disp_init(&dispCtx);
+        // socket_disp_init(&dispCtx);
+        dispCtx.display_init(&dispCtx);
         printf("Connected.\n");
 
         init_canvas(msgBuffer, BG_COLOR_WHITE);
@@ -46,23 +48,28 @@ int main()
         done = 0;
         do
         {
-            for (int i = 0; i < 32; i++)
+            for (;;)
             {
-                usleep(DELAY_MS * 1000);
                 update_grains(msgBuffer);
 
-                if(BG_SUCCESS != socket_disp_draw_buffer(&dispCtx, 0, 0, 32, 32, (BG_COLOR_e*)msgBuffer) ){
+                if(BG_SUCCESS != dispCtx.display_draw_buffer(&dispCtx, 0, 0, 32, 32, (BG_COLOR_e*)msgBuffer) ){
                     printf("Opps\n]");
                     perror("send:");
                     done = 1;
                     break;
                 }
+
+                usleep(FRAME_DELAY_MS * 1000);
+                
+                if(--newGrainCounter == 0){
+                    add_grain(msgBuffer, 0, 15, BG_COLOR_BLUE);
+                    newGrainCounter = 15;
+                }
             }
-            add_grain(msgBuffer, 0, 15, BG_COLOR_RED);
 
         } while (!done);
         printf("\tClosing.\n");
-        socket_disp_deinit(&dispCtx);
+        dispCtx.display_deinit(&dispCtx);
     }
     printf("Ending\n");
     return 0;
