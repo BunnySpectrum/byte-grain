@@ -5,7 +5,7 @@
 #include "xal/socket_server.h"
 
 
-BG_CODES_e factory_socket_display(DisplayContext_s *displayCtx);
+BG_CODES_e factory_socket_display(DisplayContext_s **displayCtx);
 
 BG_CODES_e socket_disp_register(uint8_t *hDisplay);
 BG_CODES_e socket_disp_init(DisplayContext_s *displayCtx);

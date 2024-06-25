@@ -2,6 +2,7 @@
 #define _DISPLAY_H_
 
 #include <stdint.h>
+#include "config.h"
 #include "utils/bg_codes.h"
 #include "utils/bg_colors.h"
 
@@ -22,17 +23,18 @@ typedef struct DisplayContext{
     fp_display_draw_buffer display_draw_buffer;
 }DisplayContext_s;
 
-typedef struct SocketDisplayDriver{
-    uint8_t foo;
-} SocketDisplayDriver_s;
+// typedef struct SocketDisplayDriver{
+//     uint8_t foo;
+// } SocketDisplayDriver_s;
 
-struct SocketDisplayContext{
-    DisplayContext_s dispCtx;
-    SocketDisplayDriver_s dispDrv;
-};
+// struct SocketDisplayContext{
+//     DisplayContext_s dispCtx;
+//     SocketDisplayDriver_s dispDrv;
+// };
 
 
 BG_CODES_e display_new_handle(uint8_t *handle);
+BG_CODES_e display_context_for_handle(uint8_t handle, DisplayContext_s **ctx);
 
 
 

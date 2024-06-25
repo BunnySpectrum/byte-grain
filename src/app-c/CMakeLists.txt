@@ -9,6 +9,7 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 
 include_directories(../lib)
+include_directories(../app-c)
 add_executable(${PROJECT_NAME}
     main.c
     ../lib/app/canvas.c
