@@ -31,7 +31,7 @@ BG_CODES_e factory_socket_display(DisplayContext_s **displayCtx){
     return BG_SUCCESS;
 }
 
-BG_CODES_e socket_disp_register(uint8_t *hDisplay){
+BG_CODES_e socket_disp_register(uint8_t hDisplay){
     setup_socket("/tmp/test_socket2", &conn);
     return BG_SUCCESS;
 }

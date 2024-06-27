@@ -26,7 +26,7 @@ void move_grain_to_index(uint8_t *buf, int current, int new){
 }
 
 
-void update_grains(uint8_t *buf)
+void canvas_update(uint8_t *buf)
 {
     int row, col, idx;
     int below, current, belowLeft, belowRight;

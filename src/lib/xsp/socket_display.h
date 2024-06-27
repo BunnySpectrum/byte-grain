@@ -7,7 +7,7 @@
 
 BG_CODES_e factory_socket_display(DisplayContext_s **displayCtx);
 
-BG_CODES_e socket_disp_register(uint8_t *hDisplay);
+BG_CODES_e socket_disp_register(uint8_t hDisplay);
 BG_CODES_e socket_disp_init(DisplayContext_s *displayCtx);
 BG_CODES_e socket_disp_deinit(DisplayContext_s *displayCtx);
 BG_CODES_e socket_disp_draw_pixel(DisplayContext_s *displayCtx, uint16_t x, uint16_t y, BG_COLOR_e color);

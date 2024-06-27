@@ -8,7 +8,7 @@
 
 typedef struct DisplayContext DisplayContext_s;
 
-typedef BG_CODES_e (*fp_display_register)(uint8_t *hDisplay);
+typedef BG_CODES_e (*fp_display_register)(uint8_t hDisplay);
 typedef BG_CODES_e (*fp_display_init)(DisplayContext_s *displayCtx);
 typedef BG_CODES_e (*fp_display_deinit)(DisplayContext_s *displayCtx);
 typedef BG_CODES_e (*fp_display_draw_pixel)(DisplayContext_s *displayCtx, uint16_t x, uint16_t y, BG_COLOR_e color);
