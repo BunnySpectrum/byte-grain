@@ -2,6 +2,7 @@
 #define _DISPLAY_H_
 
 #include <stdint.h>
+#include <stdio.h>
 #include "config.h"
 #include "utils/bg_codes.h"
 #include "utils/bg_colors.h"

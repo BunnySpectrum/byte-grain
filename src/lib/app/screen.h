@@ -6,6 +6,7 @@
 #include "config.h"
 #include "xsp/socket_display.h"
 #include "utils/bg_codes.h"
+#include "utils/bg_log.h"
 #include "utils/image_buf.h"
 
 // We have one screen context per screen in the application

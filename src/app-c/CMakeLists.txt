@@ -22,4 +22,6 @@ add_executable(${PROJECT_NAME}
     ../lib/xsp/nv_memory.c
 
     ../lib/xal/socket_server.c
+
+    ../lib/utils/bg_log.c
 )

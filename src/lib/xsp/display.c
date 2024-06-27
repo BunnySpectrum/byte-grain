@@ -6,8 +6,9 @@ static DisplayContext_s displayContexts[DISPLAY_MAX_COUNT] = {};
 BG_CODES_e display_new_handle(uint8_t *handle){
     activeDisplays++;
 
-    if(activeDisplays == 0){
+    if(DISPLAY_MAX_COUNT == activeDisplays){
         *handle = 0;
+        printf("Unable to allocate more display handles.");
         return BG_FAIL;
     }
 
@@ -18,6 +19,7 @@ BG_CODES_e display_new_handle(uint8_t *handle){
 
 BG_CODES_e display_context_for_handle(uint8_t handle, DisplayContext_s **ctx){
     if(handle == 0 || handle > DISPLAY_MAX_COUNT){
+        printf("Display handle was %d but must be in range [0, %d].\n", handle, DISPLAY_MAX_COUNT);
         ctx = 0;
         return BG_FAIL;
     }

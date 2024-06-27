@@ -8,8 +8,9 @@ static ScreenContext_s screenContexts[SCREEN_MAX_COUNT] = {};
 BG_CODES_e screen_new_handle(uint8_t *handle){
     activeScreens++;
 
-    if(activeScreens == 0){
+    if( (SCREEN_MAX_COUNT == activeScreens) ){
         *handle = 0;
+        printf("Unable to allocate more screen handles.");
         return BG_FAIL;
     }
 
@@ -20,6 +21,7 @@ BG_CODES_e screen_new_handle(uint8_t *handle){
 
 BG_CODES_e screen_context_for_handle(uint8_t handle, ScreenContext_s **ctx){
     if(handle == 0 || handle > SCREEN_MAX_COUNT){
+        printf("Screen handle was %d but must be in range [0, %d].\n", handle, SCREEN_MAX_COUNT);
         ctx = 0;
         return BG_FAIL;
     }
@@ -36,13 +38,11 @@ BG_CODES_e factory_screen(ScreenContext_s **screenCtx, DisplayContext_s *pDispCt
         *screenCtx = 0;
         return BG_FAIL;
     }
-    // printf("Screen factory: new handle %d.\n", hScreen);
 
     if(BG_SUCCESS != screen_context_for_handle(hScreen, screenCtx)){
         *screenCtx = 0;
         return BG_FAIL;
     }
-    // printf("Screen factory: new context.\n");
 
     (*screenCtx)->hScreen = hScreen;
     (*screenCtx)->pDispCtx = pDispCtx;
@@ -65,7 +65,6 @@ BG_CODES_e screen_update(uint8_t hScreen){
     ScreenContext_s *pScreenCtx;
 
     if(BG_SUCCESS != screen_context_for_handle(hScreen, &pScreenCtx)){
-        printf("Error getting screenCtx.\n");
         return BG_FAIL;
     }
 

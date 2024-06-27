@@ -9,6 +9,7 @@
 #include "xsp/socket_display.h"
 #include "utils/bg_msg.h"
 #include "utils/bg_colors.h"
+#include "utils/bg_log.h"
 
 #define FRAME_DELAY_MS 30
 DisplayContext_s *pDispCtx;
@@ -23,31 +24,28 @@ ImageBuf_s imageBuf = {
     };
 
 uint8_t cmdBuffer[1];
+BG_BOOL_e initSuccess = BG_True;
 
 int main()
 {
-    if(BG_SUCCESS != factory_socket_display(&pDispCtx)){
-        printf("Error setting up socket_display context.\n");
-        return BG_FAIL;
-    }
 
-    if(BG_SUCCESS != pDispCtx->display_register(pDispCtx->hDisplay)){
-        printf("Error registering socket_display.\n");
-        return BG_FAIL;
-    }
-    printf("Socket display registered: %d.\n", pDispCtx->hDisplay );
+    printf("Built at %s.\n", __TIME__);
 
-    // Set up screen
-    if(BG_SUCCESS != factory_screen(&pScreenCtx, pDispCtx, &imageBuf)){
-        printf("Error setting up screen.\n");
-        return BG_FAIL;
-    }
+    initSuccess &= log_if_err(
+        factory_socket_display(&pDispCtx), "Error setting up socket_display context.");
+    ASSERT_TRUE(initSuccess);
 
+    initSuccess &= log_if_err(
+        pDispCtx->display_register(pDispCtx->hDisplay), "Error registering socket_display.");
+    ASSERT_TRUE(initSuccess);
 
+    initSuccess &= log_if_err(
+        factory_screen(&pScreenCtx, pDispCtx, &imageBuf), "Error setting up screen.");
+    ASSERT_TRUE(initSuccess);
 
 
     // Begin loop
-    // from https://beej.us/guide/bgipc/html/#unixsock
+    // c.f. https://beej.us/guide/bgipc/html/#unixsock
     while (1)
     {
         int done;
@@ -72,7 +70,7 @@ int main()
             // Run update physics
             canvas_update(msgBuffer);
 
-            if(BG_SUCCESS != screen_update(pScreenCtx->hScreen)){
+            if(!log_if_err(screen_update(pScreenCtx->hScreen), "Error updating screen.")){
                 perror("send:");
                 done = 1;
                 break;
