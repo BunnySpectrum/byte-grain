@@ -41,5 +41,6 @@ BG_CODES_e setup_socket(char* symLinkPath, sockServerConn_s *conn);
 BG_CODES_e accept_conn(sockServerConn_s *conn);
 BG_CODES_e close_conn(sockServerConn_s *conn);
 BG_CODES_e send_buffer(sockServerConn_s *conn, void* buffer, size_t length);
+BG_CODES_e read_buffer(sockServerConn_s *conn, void* buffer, size_t length);
 
 #endif

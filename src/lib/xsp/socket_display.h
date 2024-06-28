@@ -4,8 +4,11 @@
 #include "xsp/display.h"
 #include "xal/socket_server.h"
 
+typedef struct SocketDisplayCtx{
+    sockServerConn_s conn;
+}SocketDisplayCtx_s;
 
-BG_CODES_e factory_socket_display(DisplayContext_s **displayCtx);
+BG_CODES_e factory_socket_display(DisplayContext_s **displayCtx, SocketDisplayCtx_s *pDriverCtx);
 
 BG_CODES_e socket_disp_register(uint8_t hDisplay);
 BG_CODES_e socket_disp_init(DisplayContext_s *displayCtx);

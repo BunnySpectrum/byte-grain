@@ -22,6 +22,7 @@ typedef struct DisplayContext{
     fp_display_init display_deinit;
     fp_display_draw_pixel display_draw_pixel;
     fp_display_draw_buffer display_draw_buffer;
+    void *pDriverCtx;
 }DisplayContext_s;
 
 // typedef struct SocketDisplayDriver{

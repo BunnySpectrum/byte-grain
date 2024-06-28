@@ -101,3 +101,10 @@ BG_CODES_e send_buffer(sockServerConn_s *conn, void* buffer, size_t length){
     }
     return BG_SUCCESS;
 }
+
+BG_CODES_e read_buffer(sockServerConn_s *conn, void* buffer, size_t length){
+    if (recv(conn->s2, buffer, length, 0) < 0){
+        return BG_FAIL;
+    }
+    return BG_SUCCESS;
+}

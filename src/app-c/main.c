@@ -14,6 +14,7 @@
 #define FRAME_DELAY_MS 30
 DisplayContext_s *pDispCtx;
 ScreenContext_s *pScreenCtx;
+SocketDisplayCtx_s socketDisplayCtx;
 
 uint8_t msgBuffer[PIX_COUNT];
 ImageBuf_s imageBuf = {
@@ -23,7 +24,7 @@ ImageBuf_s imageBuf = {
     .height = 32,
     };
 
-uint8_t cmdBuffer[1];
+uint8_t cmdBuffer[4];
 BG_BOOL_e initSuccess = BG_True;
 
 int main()
@@ -32,7 +33,7 @@ int main()
     printf("Built at %s.\n", __TIME__);
 
     initSuccess &= log_if_err(
-        factory_socket_display(&pDispCtx), "Error setting up socket_display context.");
+        factory_socket_display(&pDispCtx, &socketDisplayCtx), "Error setting up socket_display context.");
     ASSERT_TRUE(initSuccess);
 
     initSuccess &= log_if_err(
@@ -61,9 +62,19 @@ int main()
         do
         {
             // Stand-in for processing commands from client
+            if(BG_SUCCESS != read_buffer(&socketDisplayCtx.conn, cmdBuffer, sizeof(cmdBuffer))){
+                printf("Recv error.\n");
+                perror("recv:\n");
+            }
+
+            if(cmdBuffer[0] == 1){
+                // add grain
+                add_grain(msgBuffer, cmdBuffer[1], cmdBuffer[2], cmdBuffer[3]);
+            }
+
             if(--newGrainCounter == 0){
-                add_grain(msgBuffer, 0, 15, BG_COLOR_BLUE);
-                // add_grain(msgBuffer, 0, 15, BG_COLOR_RED);
+                // add_grain(msgBuffer, 0, 15, BG_COLOR_BLUE);
+                add_grain(msgBuffer, 0, 15, BG_COLOR_RED);
                 newGrainCounter = 15;
             }
 
