@@ -51,8 +51,10 @@ def int_to_qcolor(val):
         return QtGui.QColorConstants.Red
     elif val == 3:
         return QtGui.QColorConstants.Blue
+    elif val == 4:
+        return QtGui.QColorConstants.Yellow
     else:
-        return QtGui.QColorConstants.White
+        return QtGui.QColorConstants.Gray
 
 # Only needed for access to command line arguments
 import sys
@@ -142,17 +144,20 @@ class MainWindow(QMainWindow):
     def mousePressEvent(self, e):
         row = int( (e.pos().y() - 100)/10)
         col = int( (e.pos().x() - 100)/10)
-        print(f"Raw {e.pos()} -> Row {row}, col {col}")
+        # print(f"Raw {e.pos()} -> Row {row}, col {col}")
+        
+        if(e.button() == Qt.MouseButton.RightButton):
+            # color = QtGui.QColorConstants.Yellow
+            grainID = 4
+        else:
+            # color = QtGui.QColorConstants.Blue
+            grainID = 3
 
         if(row < 0 or row > 31 or col < 0 or col > 31):
             pass
         else:
-            self.worker.cmdQueue.put([1, row, col, 3])
+            self.worker.cmdQueue.put([1, row, col, grainID])
 
-        # if(e.button() == Qt.MouseButton.RightButton):
-        #     val = QtGui.QColorConstants.Red
-        # else:
-        #     val = QtGui.QColorConstants.Black 
 
         # self.canvas.add_grain(int(e.pos().x()/10), int(e.pos().y()/10), val)
 

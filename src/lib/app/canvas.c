@@ -1,5 +1,16 @@
 #include "canvas.h"
 
+static GrainPropS_s grainPropWater = {
+    .density = 2,
+    .viscosity = 4,
+};
+
+static GrainPropS_s grainPropSand = {
+    .density = 5,
+    .viscosity = 0,
+};
+
+
 void init_canvas(uint8_t *buf, int color)
 {
     int i;

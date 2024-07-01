@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "utils/bg_colors.h"
+#include "app/grain_def.h"
 
 #define ROW_MAX 32
 #define COL_MAX 32
@@ -37,6 +38,7 @@ void init_canvas(uint8_t *buf, int color);
 void add_grain(uint8_t *buf, int row, int col, int color);
 void move_grain_to_index(uint8_t *buf, int current, int new);
 void canvas_update(uint8_t *buf);
+void grain_update(uint8_t *buf, int row, int col);
 
 
 #endif

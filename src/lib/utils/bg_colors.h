@@ -7,6 +7,7 @@ typedef enum BG_COLOR{
     BG_COLOR_BLACK = 1,
     BG_COLOR_RED = 2,
     BG_COLOR_BLUE = 3,
+    BG_COLOR_YELLOW = 4,
     BG_COLOR_MAX = 0x3F
 }BG_COLOR_e;
 

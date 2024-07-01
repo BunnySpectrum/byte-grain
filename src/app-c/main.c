@@ -72,11 +72,11 @@ int main()
                 add_grain(msgBuffer, cmdBuffer[1], cmdBuffer[2], cmdBuffer[3]);
             }
 
-            if(--newGrainCounter == 0){
-                // add_grain(msgBuffer, 0, 15, BG_COLOR_BLUE);
-                add_grain(msgBuffer, 0, 15, BG_COLOR_RED);
-                newGrainCounter = 15;
-            }
+            // if(--newGrainCounter == 0){
+            //     // add_grain(msgBuffer, 0, 15, BG_COLOR_BLUE);
+            //     add_grain(msgBuffer, 0, 15, BG_COLOR_YELLOW);
+            //     newGrainCounter = 15;
+            // }
 
             // Run update physics
             canvas_update(msgBuffer);
