@@ -30,7 +30,7 @@ BG_BOOL_e initSuccess = BG_True;
 int main()
 {
 
-    printf("Built at %s.\n", __TIME__);
+    printf("Built at %s .\n", __TIME__);
 
     initSuccess &= log_if_err(
         factory_socket_display(&pDispCtx, &socketDisplayCtx), "Error setting up socket_display context.");
