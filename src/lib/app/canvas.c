@@ -53,15 +53,29 @@ void canvas_update(uint8_t *buf)
     }
 }
 
+BG_BOOL_e is_static_solid(uint8_t grain){
+    return GET_GRAIN_COLOR(grain) == BG_COLOR_BLACK;
+};
+
+
+BG_BOOL_e is_dynamic_solid(uint8_t grain){
+    return GET_GRAIN_COLOR(grain) == BG_COLOR_YELLOW;
+};
+
+BG_BOOL_e is_liquid(uint8_t grain){
+    return GET_GRAIN_COLOR(grain) == BG_COLOR_BLUE;
+};
 
 void grain_update(uint8_t *buf, int row, int col){
-    int below, current, belowLeft, belowRight;
+    int below, current, belowLeft, belowRight, left, right;
 
     if (row + 1 == ROW_MAX)
     {
         return;
     }
     current = GRAIN_2D_TO_1D(row, col);
+    left = GRAIN_2D_TO_1D(row, col-1);
+    right = GRAIN_2D_TO_1D(row, col+1);
     below = GRAIN_2D_TO_1D(row + 1, col);
     belowLeft = GRAIN_2D_TO_1D(row + 1, col - 1);
     belowRight = GRAIN_2D_TO_1D(row + 1, col + 1);
@@ -76,6 +90,12 @@ void grain_update(uint8_t *buf, int row, int col){
         return;
     }
 
+    if(is_static_solid(buf[current])){
+        return;
+    }
+
+    // else, we are a falling grain and/or liquid
+
     if (IS_EMPTY_GRAIN(buf[below]))
     {
         // There is an empty space below us
@@ -89,7 +109,6 @@ void grain_update(uint8_t *buf, int row, int col){
     {
         int firstCheck, secondCheck;
 
-        // firstCheck = ((rand() % 2) == 0) ? belowLeft : belowRight;
         if((rand() % 2) == 0){
             firstCheck = belowLeft;
             secondCheck = belowRight;
@@ -106,8 +125,20 @@ void grain_update(uint8_t *buf, int row, int col){
             return;
         }
 
-        CLEAR_GRAIN_ACTIVE(buf[current]);
-        SET_GRAIN_VALID(buf[current]);
+        //both bottom corners are full
+        if(is_liquid(buf[current])){
+            if((IS_EMPTY_GRAIN(buf[right]))){
+                move_grain_to_index(buf, current, right);
+                return;
+            }else if(IS_EMPTY_GRAIN(buf[left])){
+                move_grain_to_index(buf, current, left);
+                return;
+            }
+        }else{
+            CLEAR_GRAIN_ACTIVE(buf[current]);
+            SET_GRAIN_VALID(buf[current]);
+        }
+
     }
     else
     {
