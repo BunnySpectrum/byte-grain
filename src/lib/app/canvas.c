@@ -66,74 +66,137 @@ BG_BOOL_e is_liquid(uint8_t grain){
     return GET_GRAIN_COLOR(grain) == BG_COLOR_BLUE;
 };
 
-void grain_update(uint8_t *buf, int row, int col){
-    int below, current, belowLeft, belowRight, left, right;
+//returns true if grain moved downward. False if not
+BG_BOOL_e gravity_on_grain(uint8_t *buf, int row, int col){
+    int below, current, left, right;
 
-    if (row + 1 == ROW_MAX)
-    {
-        return;
+    
+    // We are at the bottom of the screen
+    if (row + 1 == ROW_MAX){
+        return BG_False;
     }
+
     current = GRAIN_2D_TO_1D(row, col);
-    left = GRAIN_2D_TO_1D(row, col-1);
-    right = GRAIN_2D_TO_1D(row, col+1);
     below = GRAIN_2D_TO_1D(row + 1, col);
-    belowLeft = GRAIN_2D_TO_1D(row + 1, col - 1);
-    belowRight = GRAIN_2D_TO_1D(row + 1, col + 1);
 
-    if (1 == GET_GRAIN_VALID(buf[current]))
-    {
-        return;
-    }
-
-    if (IS_EMPTY_GRAIN(buf[current]))
-    {
-        return;
-    }
-
-    if(is_static_solid(buf[current])){
-        return;
-    }
-
-    // else, we are a falling grain and/or liquid
-
-    if (IS_EMPTY_GRAIN(buf[below]))
-    {
+    // Try to move directly down
+    if (IS_EMPTY_GRAIN(buf[below])){
         // There is an empty space below us
         move_grain_to_index(buf, current, below);
 
         // Mark the current grain as 'active' (in motion)
         SET_GRAIN_ACTIVE(buf[below]);
 
+        return BG_True;
     }
-    else if (1 == GET_GRAIN_ACTIVE(buf[current]))
-    {
-        int firstCheck, secondCheck;
+    // printf("Below is full\n");
 
-        if((rand() % 2) == 0){
-            firstCheck = belowLeft;
-            secondCheck = belowRight;
-        }else{
+
+    // There's a grain below us, so check if we can roll to the left or right
+    if(1 == GET_GRAIN_ACTIVE(buf[current])){
+        int firstCheck, secondCheck;
+        int belowLeft = GRAIN_2D_TO_1D(row + 1, col - 1);
+        int belowRight = GRAIN_2D_TO_1D(row + 1, col + 1);
+
+        if(col == 0){
             firstCheck = belowRight;
-            secondCheck = belowLeft;
+            secondCheck = -1;
+        }else if(col + 1 == COL_MAX){
+            firstCheck = belowLeft;
+            secondCheck = -1;
+        }else{
+            if((rand() % 2) == 0){
+                firstCheck = belowLeft;
+                secondCheck = belowRight;
+            }else{
+                firstCheck = belowRight;
+                secondCheck = belowLeft;
+            }
         }
+
 
         if (IS_EMPTY_GRAIN(buf[firstCheck])){
             move_grain_to_index(buf, current, firstCheck);
-            return;
-        }else if(IS_EMPTY_GRAIN(buf[secondCheck])){
+            return BG_True;
+        }else if( (secondCheck != -1) && (IS_EMPTY_GRAIN(buf[secondCheck])) ){
             move_grain_to_index(buf, current, secondCheck);
-            return;
+            return BG_True;
         }
+    }
 
+    return BG_False;
+}
+
+BG_BOOL_e slide_on_grain(uint8_t *buf, int row, int col){
+    int below, current, belowLeft, belowRight, left, right;
+    return BG_True;
+}
+
+void grain_update(uint8_t *buf, int row, int col){
+    int below, current, belowLeft, belowRight, left, right;
+    
+    current = GRAIN_2D_TO_1D(row, col);
+
+    // grain has already been processed
+    if (1 == GET_GRAIN_VALID(buf[current]))
+    {
+        return;
+    }
+
+    // nothing to process for empty square
+    if (IS_EMPTY_GRAIN(buf[current]))
+    {
+        return;
+    }
+
+    // this grain doesn't (currently) react with anything
+    if(is_static_solid(buf[current])){
+        return;
+    }
+
+    below = GRAIN_2D_TO_1D(row + 1, col);
+
+
+    // else, we are a falling grain and/or liquid
+    if(BG_False == gravity_on_grain(buf, row, col) ){
         //both bottom corners are full
-        if(is_liquid(buf[current])){
-            if((IS_EMPTY_GRAIN(buf[right]))){
-                move_grain_to_index(buf, current, right);
-                return;
-            }else if(IS_EMPTY_GRAIN(buf[left])){
-                move_grain_to_index(buf, current, left);
-                return;
+        if( (1 == GET_GRAIN_ACTIVE(buf[current])) && (is_liquid(buf[current])) ){
+            printf("Active? %d.\n", GET_GRAIN_ACTIVE(buf[current]));
+            // CLEAR_GRAIN_ACTIVE(buf[current]);
+            // SET_GRAIN_VALID(current);
+
+            int dir;
+
+            if(col == 0){
+                dir = (rand() % 2) == 0 ? -1 : GRAIN_2D_TO_1D(row, col+1);
+            }else if(col + 1 == COL_MAX){
+                dir = (rand() % 2) == 0 ? GRAIN_2D_TO_1D(row, col-1) : -1;
+            }else{
+                dir = (rand() % 2) == 0 ? GRAIN_2D_TO_1D(row, col-1) : GRAIN_2D_TO_1D(row, col+1);
             }
+
+            if(dir == -1){
+                // hit boundary wall
+                CLEAR_GRAIN_ACTIVE(buf[current]);
+                SET_GRAIN_VALID(buf[current]);
+                return;
+            }else{
+                if(IS_EMPTY_GRAIN(buf[dir])){
+                    move_grain_to_index(buf, current, dir);
+                    // CLEAR_GRAIN_ACTIVE(buf[dir]);
+                    SET_GRAIN_VALID(buf[dir]);
+                    return;
+                }else{
+                    // hit another grain
+                    CLEAR_GRAIN_ACTIVE(buf[current]);
+                    SET_GRAIN_VALID(buf[current]);
+                    return;
+                }
+            }
+
+            CLEAR_GRAIN_ACTIVE(buf[current]);
+            SET_GRAIN_VALID(buf[current]);
+
         }else{
             CLEAR_GRAIN_ACTIVE(buf[current]);
             SET_GRAIN_VALID(buf[current]);

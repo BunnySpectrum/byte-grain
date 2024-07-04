@@ -2,6 +2,7 @@
 #define _CANVAS_H_
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "utils/bg_colors.h"
 #include "utils/bg_codes.h"
@@ -44,6 +45,8 @@ void grain_update(uint8_t *buf, int row, int col);
 BG_BOOL_e is_static_solid(uint8_t grain);
 BG_BOOL_e is_dynamic_solid(uint8_t grain);
 BG_BOOL_e is_liquid(uint8_t grain);
+BG_BOOL_e gravity_on_grain(uint8_t *buf, int row, int col);
+BG_BOOL_e slide_on_grain(uint8_t *buf, int row, int col);
 
 
 #endif
