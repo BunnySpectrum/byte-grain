@@ -6,6 +6,11 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
+set(TOUCH_FILE "../lib/utils/timestamp.c")
+add_custom_target(timestamp 
+    COMMAND touch ${TOUCH_FILE}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
 
 
 include_directories(../lib)
@@ -24,4 +29,7 @@ add_executable(${PROJECT_NAME}
     ../lib/xal/socket_server.c
 
     ../lib/utils/bg_log.c
+    ../lib/utils/timestamp.c
 )
+
+add_dependencies(${PROJECT_NAME} timestamp)

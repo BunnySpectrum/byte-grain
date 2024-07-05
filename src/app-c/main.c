@@ -10,6 +10,7 @@
 #include "utils/bg_msg.h"
 #include "utils/bg_colors.h"
 #include "utils/bg_log.h"
+#include "utils/timestamp.h"
 
 #define FRAME_DELAY_MS 30
 DisplayContext_s *pDispCtx;
@@ -30,7 +31,8 @@ BG_BOOL_e initSuccess = BG_True;
 int main()
 {
 
-    printf("Built at %s .\n", __TIME__);
+    print_build_time();
+    printf("\n");
 
     initSuccess &= log_if_err(
         factory_socket_display(&pDispCtx, &socketDisplayCtx), "Error setting up socket_display context.");
