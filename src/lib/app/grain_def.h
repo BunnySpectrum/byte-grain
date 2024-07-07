@@ -82,4 +82,58 @@ typedef struct GrainParticle{
     ParticleDirection_e direction;
 }GrainParticle_s;
 
+#define GRAIN_ID_GLASS 0b1000
+#define GRAIN_ID_STONE 0b1001
+#define GRAIN_ID_METAL 0b1010
+typedef struct GrainSolidBlock{
+    GrainBase_s base;
+    BG_BOOL_e isSolid;
+    uint8_t temperature;
+}GrainSolidBlock_s;
+
+
+#define GRAIN_ID_WOOD 0b1011
+#define GRAIN_ID_FUNGUS 0b1100
+#define GRAIN_ID_SPORE 0b1101
+typedef struct GrainFlammableBlock{
+    GrainBase_s base;
+    BG_BOOL_e isGrowing;
+    BG_BOOL_e isBurning;
+}GrainFlammableBlock_s;
+
+
+typedef enum ConveyorAxis{
+    CONVEYOR_AXIS_H = 0,
+    CONVEYOR_AXIS_V = 1,
+}ConveyorAxis_e;
+
+typedef enum ConveyorDirection{
+    CONVEYOR_DIR_RIGHT_UP = 0,
+    CONVEYOR_DIR_LEFT_DOWN = 1,
+}ConveyorDirection_e;
+
+#define GRAIN_ID_CONVEYOR 0b1110
+typedef struct GrainConveyor{
+    GrainBase_s base;
+    ConveyorAxis_e axis;
+    ConveyorDirection_e direction;
+}GrainConveyor_s;
+
+
+typedef enum SpaceType{
+    SPACE_VOID = 0,
+    SPACE_HEAT = 1,
+    SPACE_COLD = 2,
+    SPACE_ATOMIZER = 3,
+}SpaceType_e;
+#define GRAIN_ID_SPACE 0b1111
+typedef struct GrainSpace{
+    GrainBase_s base;
+    ConveyorAxis_e axis;
+    ConveyorDirection_e direction;
+}GrainSpace_s;
+
+
+
+
 #endif
