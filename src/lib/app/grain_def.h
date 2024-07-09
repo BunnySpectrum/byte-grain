@@ -1,6 +1,8 @@
 #ifndef _GRAIN_DEF_H_
 #define _GRAIN_DEF_H_
 
+#include "utils/bg_colors.h"
+
 typedef enum MatterState{
     STATE_SOLID = 0,
     STATE_LIQUID = 1,
@@ -129,11 +131,50 @@ typedef enum SpaceType{
 #define GRAIN_ID_SPACE 0b1111
 typedef struct GrainSpace{
     GrainBase_s base;
-    ConveyorAxis_e axis;
-    ConveyorDirection_e direction;
+    SpaceType_e type;
 }GrainSpace_s;
 
+typedef enum GrainType{
+    GRAIN_TYPE_SOLID_PARTICLE,
+    GRAIN_TYPE_FLAMMABLE_PARTICLE,
+    GRAIN_TYPE_WATER_PARTICLE,
+    GRAIN_TYPE_LAVA_PARTICLE,
+    GRAIN_TYPE_PARTICLE,
+    GRAIN_TYPE_SOLID_BLOCK,
+    GRAIN_TYPE_FLAMMABLE_BLOCK,
+    GRAIN_TYPE_CONVEYOR,
+    GRAIN_TYPE_SPACE,
+}GrainType_e;
 
+typedef struct Grain{
+    GrainType_e type;
+    union{
+        GrainSolidParticle_s solidParticle;
+        GrainFlammableParticle_s flammableParticle;
+        GrainWaterParticle_s waterParticle;
+        GrainLavaParticle_s lavaParticle;
+        GrainParticle_s particle;
+        GrainSolidBlock_s solidBlock;
+        GrainFlammableBlock_s flammableBlock;
+        GrainConveyor_s conveyor;
+        GrainSpace_s space;
+    } data;
+}Grain_s;
+
+
+#define GET_GRAIN_VALID(grain) (((grain) >> 7) & 0x1)
+#define SET_GRAIN_VALID(grain) ((grain) |= (1 << 7))
+#define CLEAR_GRAIN_VALID(grain) ((grain) &= ~(1 << 7))
+
+#define GET_GRAIN_ACTIVE(grain) (((grain) >> 6) & 0x1)
+#define SET_GRAIN_ACTIVE(grain) ((grain) |= (1 << 6))
+#define CLEAR_GRAIN_ACTIVE(grain) ((grain) &= ~(1 << 6))
+
+#define GET_GRAIN_COLOR(grain) ((grain) & 0x3F)
+#define SET_GRAIN_COLOR(grain, color) ((grain) = ((grain) & ~0x3F) | ((color) & 0x3F))
+#define IS_EMPTY_GRAIN(grain) (BG_COLOR_WHITE == GET_GRAIN_COLOR(grain))
+
+#define CLEAR_GRAIN(grain) ((grain) = 0x0)
 
 
 #endif
