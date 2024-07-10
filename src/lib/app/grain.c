@@ -65,3 +65,21 @@ BG_CODES_e grain_to_byte(uint8_t *byte, const Grain_s *grain){
     return BG_SUCCESS;
 }
 
+BG_CODES_e print_grain(const Grain_s *grain){
+    switch(grain->type){
+        case GRAIN_TYPE_SPACE:
+            printf("Space: type = %d, id = %d.\n", grain->data.space.type, grain->data.space.base.id);
+            break;
+        case GRAIN_TYPE_WATER_PARTICLE:
+            printf("Water particle: isAcidic = %d, temp = %d.\n", grain->data.waterParticle.isAcidic, grain->data.waterParticle.temperature, grain->data.waterParticle.base.id);
+            break;
+        case GRAIN_TYPE_SOLID_PARTICLE:
+            printf("Solid particle: isFalling = %d, temp = %d.\n", grain->data.solidParticle.isFalling, grain->data.solidParticle.temperature, grain->data.solidParticle.base.id);
+            break;
+        default:
+            return BG_FAIL;
+    }
+
+    return BG_SUCCESS;
+}
+
