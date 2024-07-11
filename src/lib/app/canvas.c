@@ -53,14 +53,30 @@ void canvas_update(uint8_t *buf)
     }
 }
 
+BG_BOOL_e _is_static_solid(const Grain_s *grain){
+    return (grain->type == GRAIN_TYPE_SOLID_BLOCK) || 
+            (grain->type == GRAIN_TYPE_FLAMMABLE_BLOCK) ||
+            (grain->type == GRAIN_TYPE_CONVEYOR) ||
+            (grain->type == GRAIN_TYPE_SPACE);
+}
 BG_BOOL_e is_static_solid(uint8_t grain){
     return GET_GRAIN_COLOR(grain) == BG_COLOR_BLACK;
 };
 
 
+BG_BOOL_e _is_dynamic_solid(const Grain_s *grain){
+    return (grain->type == GRAIN_TYPE_SOLID_PARTICLE) || 
+            (grain->type == GRAIN_TYPE_FLAMMABLE_PARTICLE);
+}
 BG_BOOL_e is_dynamic_solid(uint8_t grain){
     return GET_GRAIN_COLOR(grain) == BG_COLOR_YELLOW;
 };
+
+
+
+BG_BOOL_e _is_liquid(const Grain_s *grain){
+    return (grain->type == GRAIN_TYPE_WATER_PARTICLE) || (grain->type == GRAIN_TYPE_LAVA_PARTICLE);
+}
 
 BG_BOOL_e is_liquid(uint8_t grain){
     return GET_GRAIN_COLOR(grain) == BG_COLOR_BLUE;
