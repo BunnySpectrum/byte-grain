@@ -2,6 +2,7 @@
 #define _GRAIN_DEF_H_
 
 #include "utils/bg_colors.h"
+#include "utils/bg_codes.h"
 
 typedef enum MatterState{
     STATE_SOLID = 0,

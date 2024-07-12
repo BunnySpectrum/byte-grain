@@ -20,6 +20,7 @@ add_executable(${PROJECT_NAME}
     ../lib/app/canvas.c
     ../lib/app/screen.c
     ../lib/app/interface.c
+    ../lib/app/grain.c
 
     ../lib/xsp/display.c
     ../lib/xsp/socket_display.c

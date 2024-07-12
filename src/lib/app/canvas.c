@@ -22,6 +22,13 @@ void init_canvas(uint8_t *buf, int color)
 
 
 
+void _add_grain(uint8_t *buf, int row, int col, Grain_s *pGrain)
+{
+    uint8_t byte;
+    grain_to_byte(&byte, pGrain);
+    buf[row * ROW_MAX + col] = byte;
+}
+
 void add_grain(uint8_t *buf, int row, int col, int color)
 {
     buf[row * ROW_MAX + col] = color;

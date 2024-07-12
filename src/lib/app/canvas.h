@@ -7,6 +7,7 @@
 #include "utils/bg_colors.h"
 #include "utils/bg_codes.h"
 #include "app/grain_def.h"
+#include "app/grain.h"
 
 #define ROW_MAX 32
 #define COL_MAX 32
