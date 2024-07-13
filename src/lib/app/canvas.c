@@ -11,6 +11,18 @@ static GrainPropS_s grainPropSand = {
 };
 
 
+void _init_canvas(uint8_t *buf, uint16_t length, Grain_s *pGrain)
+{
+    uint16_t i;
+    uint8_t byte;
+
+    grain_to_byte(&byte, pGrain);
+    for (i = 0; i < length; i++)
+    {
+        buf[i] = byte;
+    }
+}
+
 void init_canvas(uint8_t *buf, int color)
 {
     int i;
